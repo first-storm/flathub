@@ -1,0 +1,47 @@
+name: Build and Export Flatpak OTD
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ com.opentabletdriver.OpenTabletDriver ]
+  pull_request:
+    branches: [ com.opentabletdriver.OpenTabletDriver ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Install Flatpak
+      run: |
+        sudo apt update
+        sudo apt install flatpak flatpak-builder
+
+    - name: Install runtime and SDK
+      run: |
+        sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+        flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+        sudo flatpak install flathub org.freedesktop.Sdk//23.08 org.freedesktop.Platform//23.08 -y
+        sudo flatpak install flathub org.freedesktop.Sdk.Extension.dotnet6//23.08 -y
+        flatpak install --user flathub org.freedesktop.Sdk//23.08 org.freedesktop.Platform//23.08 -y
+        flatpak install --user flathub org.freedesktop.Sdk.Extension.dotnet6//23.08 -y
+
+    - name: Build Flatpak app
+      run: |
+        flatpak-builder --force-clean --repo=repo --state-dir=flatpak-builder-state build-dir net.opentabletdriver.OpenTabletDriver.yaml
+        flatpak build-bundle repo net.opentabletdriver.OpenTabletDriver.flatpak net.opentabletdriver.OpenTabletDriver
+      continue-on-error: true
+
+    - name: Upload Flatpak as Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: flatpak-artifact
+        path: net.opentabletdriver.OpenTabletDriver.flatpak
+        if-no-files-found: error # This option will make the step fail if no files are found
+
+    - name: Fail if previous steps failed
+      if: ${{ failure() }}
+      run: exit 1
