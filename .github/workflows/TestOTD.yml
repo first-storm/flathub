@@ -1,6 +1,7 @@
 name: Build and Export Flatpak OTD
 
 on:
+  workflow_dispatch:
   push:
     branches: [ com.opentabletdriver.OpenTabletDriver ]
   pull_request:
