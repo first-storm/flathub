@@ -10,11 +10,11 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v3
 
-    - name: Install Flatpak, Flatpak-Builder, and appstreamcli
+    - name: Install Flatpak and Flatpak-Builder
       run: |
         sudo add-apt-repository ppa:flatpak/stable -y
         sudo apt-get update
-        sudo apt-get install -y flatpak flatpak-builder appstream
+        sudo apt-get install -y flatpak flatpak-builder
 
     - name: Set up Flathub remote
       run: |
@@ -35,14 +35,14 @@ jobs:
         flatpak-builder --force-clean --repo=repo --state-dir=flatpak-builder-state build-dir net.opentabletdriver.OpenTabletDriver.yaml
         flatpak build-bundle repo net.opentabletdriver.OpenTabletDriver.flatpak net.opentabletdriver.OpenTabletDriver
 
-    - name: Lint manifest with flatpak-builder-lint
+    - name: Lint manifest
       run: |
         flatpak run --command=flatpak-builder-lint org.flatpak.Builder//stable --exceptions manifest net.opentabletdriver.OpenTabletDriver.yaml
       continue-on-error: true
 
-    - name: Lint AppStream with appstreamcli
+    - name: Lint appstream
       run: |
-        appstreamcli validate build-dir/files/share/metainfo/net.opentabletdriver.OpenTabletDriver.metainfo.xml
+        flatpak run --command=flatpak-builder-lint org.flatpak.Builder//stable --exceptions appstream net.opentabletdriver.OpenTabletDriver.metainfo.xml
       continue-on-error: true
 
     - name: Upload Flatpak as Artifact if lint passes
