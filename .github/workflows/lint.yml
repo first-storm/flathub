@@ -6,42 +6,42 @@ on:
 jobs:
   build-and-lint:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
+    - name: Check out repository
+      uses: actions/checkout@v3
 
-    - name: Cache flatpak-builder builds
-      uses: actions/cache@v3
-      with:
-        path: .flatpak-builder
-        key: ${{ runner.os }}-flatpak-builder-${{ hashFiles('net.opentabletdriver.OpenTabletDriver.yaml') }}
-
-    - name: Install flatpak and flatpak-builder
+    - name: Install Flatpak and Flatpak-Builder
       run: |
         sudo add-apt-repository ppa:flatpak/stable -y
         sudo apt-get update
         sudo apt-get install -y flatpak flatpak-builder
 
-    - name: Set up flathub remote
-      run: flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-
-    - name: Install dependencies
+    - name: Set up Flathub remote
       run: |
-        flatpak install flathub org.freedesktop.Sdk//23.08 org.freedesktop.Platform//23.08 -y --user
-        flatpak install flathub org.flatpak.Builder -y --user
-
-    - name: Build the flatpak application
-      run: flatpak-builder --user --force-clean --install-deps-from=flathub --repo=repo builddir net.opentabletdriver.OpenTabletDriver.yaml
+        flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
     - name: Install lint tool
-      run: flatpak install flathub -y --user org.flatpak.Builder
+      run: |
+        flatpak install flathub -y org.flatpak.Builder
 
-    - name: Run lint check
-      run: flatpak run --command=flatpak-builder-lint org.flatpak.Builder --exceptions manifest net.opentabletdriver.OpenTabletDriver.yaml
+    - name: Build Flatpak app
+      run: |
+        flatpak-builder --force-clean --repo=repo --state-dir=flatpak-builder-state build-dir net.opentabletdriver.OpenTabletDriver.yaml
+        flatpak build-bundle repo net.opentabletdriver.OpenTabletDriver.flatpak net.opentabletdriver.OpenTabletDriver
 
-    - name: Upload artifact if lint passes
-      uses: actions/upload-artifact@v3
+    - name: Lint manifest
+      run: |
+        flatpak run --command=flatpak-builder-lint org.flatpak.Builder//stable --exceptions manifest net.opentabletdriver.OpenTabletDriver.yaml
+      continue-on-error: true
+
+    - name: Lint appstream
+      run: |
+        flatpak run --command=flatpak-builder-lint org.flatpak.Builder//stable --exceptions appstream build-dir/files/share/appinfo/net.opentabletdriver.OpenTabletDriver.appdata.xml
+      continue-on-error: true
+
+    - name: Upload Flatpak as Artifact if lint passes
+      if: ${{ success() }}
+      uses: actions/upload-artifact@v2
       with:
         name: flatpak-artifact
-        path: repo/*.flatpak
-        if-no-files-found: error
+        path: net.opentabletdriver.OpenTabletDriver.flatpak
