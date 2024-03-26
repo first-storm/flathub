@@ -1,0 +1,33 @@
+name: Build and Lint Flatpak Application
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Install Flatpak and Flatpak-Builder
+        run: |
+          sudo apt update
+          sudo apt install flatpak flatpak-builder -y
+          sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          sudo flatpak install flathub org.freedesktop.Sdk//23.08 -y
+          sudo flatpak install flathub org.freedesktop.Sdk.Extension.dotnet6//23.08 -y
+
+      - name: Build Flatpak Application
+        run: flatpak-builder --force-clean --repo=repo build-dir net.opentabletdriver.OpenTabletDriver.yaml
+
+      - name: Run lint
+        run: |
+          sudo flatpak run --command=flatpak-builder-lint org.flatpak.Builder --exceptions build-dir repo
+
+      - name: Upload artifact if lint succeeds
+        if: success()
+        uses: actions/upload-artifact@v2
+        with:
+          name: flatpak-artifact
+          path: build-dir/net.opentabletdriver.OpenTabletDriver.flatpak
