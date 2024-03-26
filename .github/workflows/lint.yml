@@ -42,7 +42,7 @@ jobs:
 
     - name: Lint appstream
       run: |
-        flatpak run --command=flatpak-builder-lint org.flatpak.Builder//stable --exceptions appstream build-dir/files/share/appinfo/net.opentabletdriver.OpenTabletDriver.appdata.xml
+        flatpak run --command=flatpak-builder-lint org.flatpak.Builder//stable --exceptions appstream build-dir/files/share/appinfo/net.opentabletdriver.OpenTabletDriver.metainfo.xml
       continue-on-error: true
 
     - name: Upload Flatpak as Artifact if lint passes
