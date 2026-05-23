@@ -3,7 +3,7 @@ runtime: org.freedesktop.Platform
 runtime-version: "25.08"
 sdk: org.freedesktop.Sdk
 sdk-extensions:
-  - org.freedesktop.Sdk.Extension.openjdk21
+  - org.freedesktop.Sdk.Extension.openjdk25
 command: hmcl
 
 finish-args:
@@ -26,38 +26,9 @@ modules:
   - name: openjdk
     buildsystem: simple
     build-commands:
-      - /usr/lib/sdk/openjdk21/install.sh
+      - /usr/lib/sdk/openjdk25/install.sh
       - mkdir -p "$FLATPAK_DEST/share/licenses/$FLATPAK_ID/openjdk"
-      - cp -a /usr/lib/sdk/openjdk21/jvm/openjdk-21/legal/. "$FLATPAK_DEST/share/licenses/$FLATPAK_ID/openjdk/"
-
-  - name: openjfx
-    buildsystem: simple
-    build-commands:
-      - mkdir -p /app/openjfx
-      - cp -r lib /app/openjfx/lib
-      - mkdir -p "$FLATPAK_DEST/share/licenses/$FLATPAK_ID/openjfx"
-      - cp -a legal/. "$FLATPAK_DEST/share/licenses/$FLATPAK_ID/openjfx/"
-    sources:
-      - type: archive
-        only-arches:
-          - x86_64
-        url: https://download2.gluonhq.com/openjfx/21.0.11/openjfx-21.0.11_linux-x64_bin-sdk.zip
-        sha256: 9a69b4074f22bdb051ca0ae8e9794750621ef815c7657ccc51f89ba81ef2b624
-        x-checker-data:
-          type: html
-          url: https://gluonhq.com/products/javafx/openjfx-21-release-notes/
-          version-pattern: Release Notes for JavaFX (21\.[0-9.]+)
-          url-template: https://download2.gluonhq.com/openjfx/$version/openjfx-${version}_linux-x64_bin-sdk.zip
-      - type: archive
-        only-arches:
-          - aarch64
-        url: https://download2.gluonhq.com/openjfx/21.0.11/openjfx-21.0.11_linux-aarch64_bin-sdk.zip
-        sha256: 830d08c92eb5974463092f781ae0c62f6e01394cc42828ed7902c6d074c0757e
-        x-checker-data:
-          type: html
-          url: https://gluonhq.com/products/javafx/openjfx-21-release-notes/
-          version-pattern: Release Notes for JavaFX (21\.[0-9.]+)
-          url-template: https://download2.gluonhq.com/openjfx/$version/openjfx-${version}_linux-aarch64_bin-sdk.zip
+      - cp -a /usr/lib/sdk/openjdk25/jvm/openjdk-25/legal/. "$FLATPAK_DEST/share/licenses/$FLATPAK_ID/openjdk/"
 
   - name: hmcl
     buildsystem: simple
