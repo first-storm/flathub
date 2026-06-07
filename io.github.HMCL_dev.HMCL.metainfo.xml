@@ -6,8 +6,8 @@
   <name>HMCL</name>
   <summary>Hello Minecraft Launcher</summary>
   <summary xml:lang="zh_CN">Hello Minecraft 启动器</summary>
-  <developer id="net.huangyuhui">
-    <name>huangyuhui</name>
+  <developer id="io.github.hmcl-dev">
+    <name>HMCL-dev</name>
   </developer>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-only</project_license>
