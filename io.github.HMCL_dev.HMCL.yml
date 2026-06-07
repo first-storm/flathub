@@ -1,0 +1,69 @@
+app-id: io.github.HMCL_dev.HMCL
+runtime: org.freedesktop.Platform
+runtime-version: "25.08"
+sdk: org.freedesktop.Sdk
+command: hmcl-stable
+# Upstream recommends openjdk25.
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.openjdk25
+
+finish-args:
+  - --share=ipc
+  - --share=network
+  # This is required because some Minecraft builds support wayland but HMCL doesn't support it.
+  - --socket=x11
+  - --socket=wayland
+  - --persist=.minecraft
+  - --persist=.hmcl
+  - --socket=pulseaudio
+  - --device=dri
+  # Java installations
+  - --env=PATH=/app/jre/bin:/app/bin:/usr/bin
+  - --env=JAVA_HOME=/app/jre
+  # Disable HMCL's offline auth to comply with flathub's policy.
+  - --env=HMCL_JAVA_OPTS=-XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=15 -Dhmcl.offline.auth.restricted=true
+
+modules:
+  - name: openjdk
+    buildsystem: simple
+    build-commands:
+      - /usr/lib/sdk/openjdk25/install.sh
+
+  - name: hmcl
+    buildsystem: simple
+    build-commands:
+      # Extract the deb file
+      - ar x hmcl.deb
+      - tar -xzf data.tar.gz
+      # Install HMCL launcher script and fix the path for Flatpak
+      - install -Dm755 usr/bin/hmcl-stable /app/bin/hmcl-stable
+      - sed -i 's|/usr/share/java/hmcl/|/app/share/java/hmcl/|g' /app/bin/hmcl-stable
+      # Copy usr/share/java/hmcl/ dir to /app/share/java/hmcl/ dir
+      - mkdir -p /app/share/java/hmcl
+      - cp -a usr/share/java/hmcl/. /app/share/java/hmcl/
+      # Install appstream file
+      - install -Dm644 io.github.HMCL_dev.HMCL.metainfo.xml /app/share/metainfo/io.github.HMCL_dev.HMCL.metainfo.xml
+
+      # Install desktop file
+      - install -Dm644 usr/share/applications/hmcl-stable.desktop /app/share/applications/io.github.HMCL_dev.HMCL.desktop
+      # Edit desktop file to set correct Exec and Icon paths
+      - desktop-file-edit --set-key="Icon" --set-value="io.github.HMCL_dev.HMCL" /app/share/applications/io.github.HMCL_dev.HMCL.desktop
+      - desktop-file-edit --set-key="Exec" --set-value="hmcl-stable %U" /app/share/applications/io.github.HMCL_dev.HMCL.desktop
+
+      # Install icon
+      - install -Dm644 usr/share/icons/hicolor/256x256/apps/hmcl-stable.png /app/share/icons/hicolor/256x256/apps/io.github.HMCL_dev.HMCL.png
+
+    sources:
+      - type: file
+        path: io.github.HMCL_dev.HMCL.metainfo.xml
+      - type: file
+        url: https://github.com/HMCL-dev/HMCL/releases/download/v3.14.1/HMCL-3.14.1.deb
+        sha256: 54677547b5906a3e07b353819c5a453e507fe77e1fac91c6086f21c86c72c5d1
+        dest-filename: hmcl.deb
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/HMCL-dev/HMCL/releases/latest
+          # Pick the num with v stripped to get ver.
+          version-query: .tag_name | sub("^v"; "")
+          # Choose the file ending with .deb and get its browser_download_url.
+          url-query: .assets[] | select(.name | test("\\.deb$")) | .browser_download_url
