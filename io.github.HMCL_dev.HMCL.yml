@@ -20,8 +20,6 @@ finish-args:
   # Java installations
   - --env=PATH=/app/jre/bin:/app/bin:/usr/bin
   - --env=JAVA_HOME=/app/jre
-  # Disable HMCL's offline auth to comply with flathub's policy.
-  - --env=HMCL_JAVA_OPTS=-XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=15 -Dhmcl.offline.auth.restricted=true
 
 modules:
   - name: openjdk
